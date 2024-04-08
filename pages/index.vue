@@ -7,8 +7,8 @@
   </section>
 
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:gap-16 mb-10">
-    <Trend color="green" title="Income" :amount="incomeTotal" :last-amount="4100" :loading="pending" />
-    <Trend color="red" title="Expense" :amount="expenseTotal" :last-amount="3800" :loading="pending" />
+    <Trend color="green" title="Income" :amount="incomeTotal" :last-amount="prevIncomeTotal" :loading="pending" />
+    <Trend color="red" title="Expense" :amount="expenseTotal" :last-amount="prevExpenseTotal" :loading="pending" />
     <Trend color="green" title="Investments" :amount="4000" :last-amount="3000" :loading="pending" />
     <Trend color="red" title="Savings" :amount="4000" :last-amount="4500" :loading="pending" />
   </section>
@@ -25,7 +25,7 @@
   </section>
 
   <section v-if="!pending">
-    <div v-for="(transactionsOnDay, date) in transactionGroupedByDate" :key="date" class="mb-10">
+    <div v-for="(transactionsOnDay, date) in byDate" :key="date" class="mb-10">
       <DailyTransactionSummary :date="date" :transactions="transactionsOnDay" />
       <Transaction v-for="transaction in transactionsOnDay" :key="transaction.id" :transaction="transaction" @deleted="refresh()" />
     </div>
@@ -40,7 +40,7 @@ import { transactionViewOptions } from "~/constants"
 
 const selectedView = ref(transactionViewOptions[1])
 const isOpen = ref(false)
-const dates = useSelectedTimePeriod(selectedView)
+const { current, previous } = useSelectedTimePeriod(selectedView)
 
 const { pending, refresh, transactions: {
   incomeCount,
@@ -50,7 +50,11 @@ const { pending, refresh, transactions: {
   grouped: {
     byDate
   }
-}} = useFetchTransactions()
+}} = useFetchTransactions(current.value)
 
-await refresh()
+const { transactions: {
+  incomeTotal: prevIncomeTotal,
+  expenseTotal: prevExpenseTotal,
+}} = useFetchTransactions(previous.value)
+
 </script>
